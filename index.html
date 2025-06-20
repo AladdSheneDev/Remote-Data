@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>National TV Remote Database</title>
+  <script>
+    async function searchRemote() {
+      const model = document.getElementById("tvModel").value.trim();
+      if (!model) return alert("Please enter a TV model.");
+
+      const apiURL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg_WdOKxS6yTLLwr66rmy-4MTIW6XlkwQT2PsSt17Om8Nl364ZhaAU1dcsLxhccFut5UIM76NwdoakgH3o_G9CG5N97J4-_pcT2fzzWSJEIisDwe8bULVJESq_vAav_-N9aknx_11S-5VX3nnQfVspXW0BsnwYcgsvmPW0WI3grdl_L7DjwHByMJMDLB4jKQK5U8W0i_36UDb1GoUTgKU1B8kY8-oJxHTFVlJn0agxjkfe_-2qQQX_36ojGKSYbpkBWSHqTL1EOUpeLSD4GKse7eWaJfA&lib=M2zby2S9aqOZHzvGJzsia_3qzQVRJChSp?model=" + encodeURIComponent(model);
+
+      try {
+        const response = await fetch(apiURL);
+        const data = await response.json();
+
+        const resultDiv = document.getElementById("results");
+        if (data.success) {
+          const r = data.data;
+          resultDiv.innerHTML = `
+            <h2>${r.brand} ${model}</h2>
+            <p>Remote Model: ${r.remote_model}</p>
+            <img src="${r.remote_image}" width="200" alt="Remote Image"><br/>
+            <h3>Buy Links:</h3>
+            <ul>
+              ${r.buy_links.map(link => `<li><a href="${link.url}" target="_blank">${link.name}</a></li>`).join('')}
+            </ul>
+          `;
+        } else {
+          resultDiv.innerHTML = `<p>${data.message}</p>`;
+        }
+      } catch (e) {
+        alert("Error fetching data. Please try again later.");
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Find Your TV Remote</h1>
+  <input type="text" id="tvModel" placeholder="Enter TV model (e.g., UN43TU7000)" />
+  <button onclick="searchRemote()">Search</button>
+  <div id="results" style="margin-top:20px;"></div>
+</body>
+</html>
