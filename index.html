@@ -2,12 +2,37 @@
 <html>
 <head>
   <title>National TV Remote Database</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    text-align: center;
+  }
+  input {
+    padding: 8px;
+    width: 250px;
+  }
+  button {
+    padding: 8px 16px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  #results {
+    margin-top: 20px;
+  }
+  footer {
+    margin-top: 60px;
+    font-size: 0.9em;
+    color: gray;
+  }
+</style>
+
   <script>
     async function searchRemote() {
       const model = document.getElementById("tvModel").value.trim();
       if (!model) return alert("Please enter a TV model.");
 
-      const apiURL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg_WdOKxS6yTLLwr66rmy-4MTIW6XlkwQT2PsSt17Om8Nl364ZhaAU1dcsLxhccFut5UIM76NwdoakgH3o_G9CG5N97J4-_pcT2fzzWSJEIisDwe8bULVJESq_vAav_-N9aknx_11S-5VX3nnQfVspXW0BsnwYcgsvmPW0WI3grdl_L7DjwHByMJMDLB4jKQK5U8W0i_36UDb1GoUTgKU1B8kY8-oJxHTFVlJn0agxjkfe_-2qQQX_36ojGKSYbpkBWSHqTL1EOUpeLSD4GKse7eWaJfA&lib=M2zby2S9aqOZHzvGJzsia_3qzQVRJChSp?model=" + encodeURIComponent(model);
+      const apiURL = "https://script.google.com/macros/s/AKfycbxF49CesVwqFZE5cG0hRy_atNXEkduv-g1erztJOyF7IOTkmDLF2cvMif5GIZc6WvZv/exec?model=" + encodeURIComponent(model);
 
       try {
         const response = await fetch(apiURL);
@@ -35,9 +60,14 @@
   </script>
 </head>
 <body>
-  <h1>Find Your TV Remote</h1>
+  <h1>Search the Database</h1>
   <input type="text" id="tvModel" placeholder="Enter TV model (e.g., UN43TU7000)" />
   <button onclick="searchRemote()">Search</button>
   <div id="results" style="margin-top:20px;"></div>
+  <footer>
+    <p>By Aladdin Shenewa Nation TV Remote Database©</p>
+    <p>If you would like to contribute to the Database please contact me at aladdinshenewa@outlook.com</p>
+  </footer>
 </body>
 </html>
+
