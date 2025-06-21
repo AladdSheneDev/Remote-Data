@@ -163,8 +163,8 @@
   }
 
   async function searchRemote() {
-    const model = document.getElementById("tvModel").value.trim();
-    if (!model) {
+    const query = document.getElementById("tvModel").value.trim().toLowerCase();
+    if (!query) {
       alert("Please enter a TV model, brand, or remote model.");
       return;
     }
@@ -173,7 +173,7 @@
     document.getElementById("loading").style.display = "block";
 
     try {
-      const response = await fetch(`${apiBase}?q=${encodeURIComponent(model)}`);
+      const response = await fetch(`${apiBase}?q=${encodeURIComponent(query)}`);
       const data = await response.json();
       document.getElementById("loading").style.display = "none";
 
@@ -181,7 +181,23 @@
         const resultDiv = document.getElementById("results");
         resultDiv.innerHTML = "";
 
-        data.data.forEach(r => {
+        // Client-side filtering to make sure results match the query
+        const filtered = data.data.filter(item => {
+          return (
+            (item.model && item.model.toLowerCase().includes(query)) ||
+            (item.brand && item.brand.toLowerCase().includes(query)) ||
+            (item.remote_model && item.remote_model.toLowerCase().includes(query)) ||
+            (item.buy_link_name && item.buy_link_name.toLowerCase().includes(query)) ||
+            (item.buy_link_url && item.buy_link_url.toLowerCase().includes(query))
+          );
+        });
+
+        if (filtered.length === 0) {
+          resultDiv.innerHTML = `<p>No remotes found for "${query}".</p>`;
+          return;
+        }
+
+        filtered.forEach(r => {
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `
@@ -193,13 +209,13 @@
           resultDiv.appendChild(card);
         });
 
-        saveHistory(model);
+        saveHistory(query);
       } else {
-        document.getElementById("results").innerHTML = `<p>No remotes found for "${model}".</p>`;
+        document.getElementById("results").innerHTML = `<p>No remotes found for "${query}".</p>`;
       }
     } catch (e) {
       document.getElementById("loading").style.display = "none";
-      document.getElementById("results").innerHTML = `<p>Sorry, but we had some trouble getting our database</p>`;
+      document.getElementById("results").innerHTML = `<p>Sorry, but we had some trouble getting our database.</p>`;
       console.error(e);
     }
   }
@@ -207,7 +223,7 @@
   function suggest() {
     const input = document.getElementById("tvModel").value.toLowerCase();
     const suggestions = searchLog.filter(q => q.toLowerCase().startsWith(input));
-    // This is just a placeholder; you could show live suggestions here later.
+    // Placeholder for future suggestions UI
   }
 
   window.onload = renderHistory;
@@ -215,4 +231,3 @@
 
 </body>
 </html>
-
