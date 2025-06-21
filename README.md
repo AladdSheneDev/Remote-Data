@@ -2,5 +2,6 @@ Hi, Thanks for reading this, I made a TV remote Database, so you don't have to g
 1. Uploading new TV remotes
 2. or
 3. 2. Helping with the search script
+   3. 
 Thanks for reading the website is published here, https://aladdshenedev.github.io/Remote-Data/
 Happy Coding!
