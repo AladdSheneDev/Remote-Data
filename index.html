@@ -1,73 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>National TV Remote Database</title>
   <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 40px;
-    text-align: center;
-  }
-  input {
-    padding: 8px;
-    width: 250px;
-  }
-  button {
-    padding: 8px 16px;
-    margin-left: 10px;
-    cursor: pointer;
-  }
-  #results {
-    margin-top: 20px;
-  }
-  footer {
-    margin-top: 60px;
-    font-size: 0.9em;
-    color: gray;
-  }
-</style>
-
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    #results img {
+      max-width: 200px;
+      margin-top: 10px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
   <script>
     async function searchRemote() {
       const model = document.getElementById("tvModel").value.trim();
-      if (!model) return alert("Please enter a TV model.");
+      if (!model) {
+        alert("Please enter a TV model, brand, or remote model.");
+        return;
+      }
 
-      const apiURL = "https://script.google.com/macros/s/AKfycbxF49CesVwqFZE5cG0hRy_atNXEkduv-g1erztJOyF7IOTkmDLF2cvMif5GIZc6WvZv/exec?model=" + encodeURIComponent(model);
+      const apiURL = "https://YOUR_WORKER_URL_HERE?q=" + encodeURIComponent(model);
 
       try {
         const response = await fetch(apiURL);
         const data = await response.json();
 
         const resultDiv = document.getElementById("results");
-        if (data.success) {
-          const r = data.data;
-          resultDiv.innerHTML = `
-            <h2>${r.brand} ${model}</h2>
-            <p>Remote Model: ${r.remote_model}</p>
-            <img src="${r.remote_image}" width="200" alt="Remote Image"><br/>
-            <h3>Buy Links:</h3>
-            <ul>
-              ${r.buy_links.map(link => `<li><a href="${link.url}" target="_blank">${link.name}</a></li>`).join('')}
-            </ul>
-          `;
+        if (data.success && data.data.length > 0) {
+          resultDiv.innerHTML = "";
+
+          data.data.forEach(r => {
+            const section = document.createElement("div");
+            section.innerHTML = `
+              <h2>${r.brand} - ${r.model}</h2>
+              <p><strong>Remote Model:</strong> ${r.remote_model}</p>
+              <img src="${r.remote_image}" alt="Remote Image" />
+              <h3>Buy Links:</h3>
+              <ul>
+                <li><a href="${r.buy_link_url}" target="_blank">${r.buy_link_name}</a></li>
+              </ul>
+              <hr/>
+            `;
+            resultDiv.appendChild(section);
+          });
         } else {
-          resultDiv.innerHTML = `<p>${data.message}</p>`;
+          resultDiv.innerHTML = `<p>${data.message || "No remotes found."}</p>`;
         }
       } catch (e) {
-        alert("Error fetching data. Please try again later.");
+        document.getElementById("results").innerHTML = "<p>⚠️ Error fetching data. Please try again later.</p>";
+        console.error(e);
       }
     }
   </script>
 </head>
 <body>
   <h1>Search the Database</h1>
-  <input type="text" id="tvModel" placeholder="Enter TV model (e.g., UN43TU7000)" />
+  <input type="text" id="tvModel" placeholder="Enter TV model, brand, or remote..." />
   <button onclick="searchRemote()">Search</button>
-  <div id="results" style="margin-top:20px;"></div>
-  <footer>
-    <p>By Aladdin Shenewa Nation TV Remote Database©</p>
-    <p>If you would like to contribute to the Database please contact me at aladdinshenewa@outlook.com</p>
+
+  <div id="results" style="margin-top: 30px;"></div>
+
+  <footer style="margin-top: 50px; font-size: 0.9em;">
+    <p>By Aladdin Shenewa – National TV Remote Database © 2025</p>
+    <p>Want to contribute? Contact <a href="mailto:aladdinshenewa@outlook.com">aladdinshenewa@outlook.com</a></p>
   </footer>
 </body>
 </html>
+
 
