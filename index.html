@@ -173,7 +173,7 @@
     document.getElementById("loading").style.display = "block";
 
     try {
-      const response = await fetch(`${apiBase}/?q=${encodeURIComponent(model)}`);
+      const response = await fetch(`${apiBase}?q=${encodeURIComponent(model)}`);
       const data = await response.json();
       document.getElementById("loading").style.display = "none";
 
@@ -182,19 +182,23 @@
         resultDiv.innerHTML = "";
 
         data.data.forEach(r => {
-          let linksHTML = '';
-          if (Array.isArray(r.buy_links)) {
-            linksHTML = r.buy_links.map(link =>
-              `<p><a href="${link.url}" target="_blank">${link.name}</a></p>`
-            ).join('');
-          }
+          const brand = r.brand || "Unknown Brand";
+          const model = r.model || "Unknown Model";
+          const remote = r.remote_model || "Unknown Remote";
+          const image = r.remote_image || "https://via.placeholder.com/250x150?text=No+Image";
+          const links = Array.isArray(r.buy_links) ? r.buy_links : [];
 
           const card = document.createElement("div");
           card.className = "card";
+
+          let linksHTML = links.map(link =>
+            `<p><a href="${link.url}" target="_blank">${link.name}</a></p>`
+          ).join('');
+
           card.innerHTML = `
-            <h2>${r.brand} – ${r.model}</h2>
-            <p><strong>Remote:</strong> ${r.remote_model}</p>
-            <img src="${r.remote_image}" alt="Remote Image" />
+            <h2>${brand} – ${model}</h2>
+            <p><strong>Remote:</strong> ${remote}</p>
+            <img src="${image}" alt="Remote Image" />
             ${linksHTML}
           `;
           resultDiv.appendChild(card);
@@ -206,7 +210,7 @@
       }
     } catch (e) {
       document.getElementById("loading").style.display = "none";
-      document.getElementById("results").innerHTML = `<p>Sorry, but we had some trouble getting our database.</p>`;
+      document.getElementById("results").innerHTML = `<p>Sorry, we had trouble connecting to the database.</p>`;
       console.error(e);
     }
   }
@@ -214,7 +218,7 @@
   function suggest() {
     const input = document.getElementById("tvModel").value.toLowerCase();
     const suggestions = searchLog.filter(q => q.toLowerCase().startsWith(input));
-    // Use if needed
+    // Optional: show suggestions dropdown
   }
 
   window.onload = renderHistory;
@@ -222,3 +226,4 @@
 
 </body>
 </html>
+
