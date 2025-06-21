@@ -137,7 +137,7 @@
 </footer>
 
 <script>
-  const apiBase = "https://wk.momyay-com.workers.dev";
+  const apiBase = "https://ae909802-82d1-46c4-af5b-987473552c9f-00-33p2sv51zcxr9.picard.replit.dev";
   let searchLog = [];
 
   function saveHistory(query) {
@@ -207,10 +207,9 @@
   function suggest() {
     const input = document.getElementById("tvModel").value.toLowerCase();
     const suggestions = searchLog.filter(q => q.toLowerCase().startsWith(input));
-    // You can use this function to display suggestions if you want later
+    // This is just a placeholder; you could show live suggestions here later.
   }
 
-  // Load history on page load
   window.onload = renderHistory;
 </script>
 
