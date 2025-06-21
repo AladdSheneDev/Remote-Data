@@ -163,8 +163,8 @@
   }
 
   async function searchRemote() {
-    const query = document.getElementById("tvModel").value.trim().toLowerCase();
-    if (!query) {
+    const model = document.getElementById("tvModel").value.trim();
+    if (!model) {
       alert("Please enter a TV model, brand, or remote model.");
       return;
     }
@@ -173,7 +173,7 @@
     document.getElementById("loading").style.display = "block";
 
     try {
-      const response = await fetch(`${apiBase}?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${apiBase}/?q=${encodeURIComponent(model)}`);
       const data = await response.json();
       document.getElementById("loading").style.display = "none";
 
@@ -181,37 +181,28 @@
         const resultDiv = document.getElementById("results");
         resultDiv.innerHTML = "";
 
-        // Client-side filtering to make sure results match the query
-        const filtered = data.data.filter(item => {
-          return (
-            (item.model && item.model.toLowerCase().includes(query)) ||
-            (item.brand && item.brand.toLowerCase().includes(query)) ||
-            (item.remote_model && item.remote_model.toLowerCase().includes(query)) ||
-            (item.buy_link_name && item.buy_link_name.toLowerCase().includes(query)) ||
-            (item.buy_link_url && item.buy_link_url.toLowerCase().includes(query))
-          );
-        });
+        data.data.forEach(r => {
+          let linksHTML = '';
+          if (Array.isArray(r.buy_links)) {
+            linksHTML = r.buy_links.map(link =>
+              `<p><a href="${link.url}" target="_blank">${link.name}</a></p>`
+            ).join('');
+          }
 
-        if (filtered.length === 0) {
-          resultDiv.innerHTML = `<p>No remotes found for "${query}".</p>`;
-          return;
-        }
-
-        filtered.forEach(r => {
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `
             <h2>${r.brand} – ${r.model}</h2>
             <p><strong>Remote:</strong> ${r.remote_model}</p>
             <img src="${r.remote_image}" alt="Remote Image" />
-            <p><a href="${r.buy_link_url}" target="_blank">${r.buy_link_name}</a></p>
+            ${linksHTML}
           `;
           resultDiv.appendChild(card);
         });
 
-        saveHistory(query);
+        saveHistory(model);
       } else {
-        document.getElementById("results").innerHTML = `<p>No remotes found for "${query}".</p>`;
+        document.getElementById("results").innerHTML = `<p>No remotes found for "${model}".</p>`;
       }
     } catch (e) {
       document.getElementById("loading").style.display = "none";
@@ -223,7 +214,7 @@
   function suggest() {
     const input = document.getElementById("tvModel").value.toLowerCase();
     const suggestions = searchLog.filter(q => q.toLowerCase().startsWith(input));
-    // Placeholder for future suggestions UI
+    // Use if needed
   }
 
   window.onload = renderHistory;
