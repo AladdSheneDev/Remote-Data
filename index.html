@@ -2,76 +2,218 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>National TV Remote Database</title>
+  <title>TV Remote Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-    }
-    #results img {
-      max-width: 200px;
-      margin-top: 10px;
-    }
-    ul {
-      list-style-type: none;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 1em;
+      width: 100%;
+      text-align: center;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-right: 10px;
+      width: 60%;
+    }
+
+    button {
+      background-color: #0078D7;
+      color: white;
+      cursor: pointer;
+      width: auto;
+    }
+
+    #results {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 5px;
+    }
+
+    .card h2 {
+      margin: 10px 0 5px;
+      font-size: 1.2em;
+    }
+
+    .card p {
+      margin: 5px 0;
+      font-size: 0.95em;
+    }
+
+    #loading {
+      display: none;
+      margin-top: 20px;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.9em;
+      padding: 20px;
+      color: #555;
+    }
+
+    .history {
+      margin-top: 10px;
+      font-size: 0.85em;
+      color: #333;
+    }
+
+    .history span {
+      cursor: pointer;
+      background: #e0e0e0;
+      padding: 3px 8px;
+      margin: 2px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    @media (max-width: 600px) {
+      input {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      button {
+        width: 100%;
+      }
     }
   </style>
-  <script>
-    async function searchRemote() {
-      const model = document.getElementById("tvModel").value.trim();
-      if (!model) {
-        alert("Please enter a TV model, brand, or remote model.");
-        return;
-      }
-
-      const apiURL = "https://YOUR_WORKER_URL_HERE?q=" + encodeURIComponent(model);
-
-      try {
-        const response = await fetch(apiURL);
-        const data = await response.json();
-
-        const resultDiv = document.getElementById("results");
-        if (data.success && data.data.length > 0) {
-          resultDiv.innerHTML = "";
-
-          data.data.forEach(r => {
-            const section = document.createElement("div");
-            section.innerHTML = `
-              <h2>${r.brand} - ${r.model}</h2>
-              <p><strong>Remote Model:</strong> ${r.remote_model}</p>
-              <img src="${r.remote_image}" alt="Remote Image" />
-              <h3>Buy Links:</h3>
-              <ul>
-                <li><a href="${r.buy_link_url}" target="_blank">${r.buy_link_name}</a></li>
-              </ul>
-              <hr/>
-            `;
-            resultDiv.appendChild(section);
-          });
-        } else {
-          resultDiv.innerHTML = `<p>${data.message || "No remotes found."}</p>`;
-        }
-      } catch (e) {
-        document.getElementById("results").innerHTML = "<p>⚠️ Error fetching data. Please try again later.</p>";
-        console.error(e);
-      }
-    }
-  </script>
 </head>
 <body>
-  <h1>Search the Database</h1>
-  <input type="text" id="tvModel" placeholder="Enter TV model, brand, or remote..." />
+
+<header>
+  <h1>🔍 TV Remote Finder</h1>
+</header>
+
+<main>
+  <input type="text" id="tvModel" placeholder="Search TV model, brand, remote..." oninput="suggest()">
   <button onclick="searchRemote()">Search</button>
+  <div class="history" id="history"></div>
 
-  <div id="results" style="margin-top: 30px;"></div>
+  <div id="loading">Loading results...</div>
+  <div id="results"></div>
+</main>
 
-  <footer style="margin-top: 50px; font-size: 0.9em;">
-    <p>By Aladdin Shenewa – National TV Remote Database © 2025</p>
-    <p>Want to contribute? Contact <a href="mailto:aladdinshenewa@outlook.com">aladdinshenewa@outlook.com</a></p>
-  </footer>
+<footer>
+  <p>By Aladdin Shenewa – National TV Remote Database © 2025</p>
+  <p>Want to contribute? <a href="mailto:aladdinshenewa@outlook.com">Email me</a></p>
+</footer>
+
+<script>
+  const apiBase = "https://wk.momyay-com.workers.dev";
+  let searchLog = [];
+
+  function saveHistory(query) {
+    if (!searchLog.includes(query)) {
+      searchLog.unshift(query);
+      if (searchLog.length > 5) searchLog.pop();
+      localStorage.setItem("tvSearchHistory", JSON.stringify(searchLog));
+      renderHistory();
+    }
+  }
+
+  function renderHistory() {
+    const historyDiv = document.getElementById("history");
+    const stored = JSON.parse(localStorage.getItem("tvSearchHistory")) || [];
+    searchLog = stored;
+    if (stored.length === 0) return historyDiv.innerHTML = '';
+    historyDiv.innerHTML = "Recent: " + stored.map(q => `<span onclick="quickSearch('${q}')">${q}</span>`).join(' ');
+  }
+
+  function quickSearch(query) {
+    document.getElementById("tvModel").value = query;
+    searchRemote();
+  }
+
+  async function searchRemote() {
+    const model = document.getElementById("tvModel").value.trim();
+    if (!model) {
+      alert("Please enter a TV model, brand, or remote model.");
+      return;
+    }
+
+    document.getElementById("results").innerHTML = "";
+    document.getElementById("loading").style.display = "block";
+
+    try {
+      const response = await fetch(`${apiBase}?q=${encodeURIComponent(model)}`);
+      const data = await response.json();
+      document.getElementById("loading").style.display = "none";
+
+      if (data.success && data.data.length > 0) {
+        const resultDiv = document.getElementById("results");
+        resultDiv.innerHTML = "";
+
+        data.data.forEach(r => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h2>${r.brand} – ${r.model}</h2>
+            <p><strong>Remote:</strong> ${r.remote_model}</p>
+            <img src="${r.remote_image}" alt="Remote Image" />
+            <p><a href="${r.buy_link_url}" target="_blank">${r.buy_link_name}</a></p>
+          `;
+          resultDiv.appendChild(card);
+        });
+
+        saveHistory(model);
+      } else {
+        document.getElementById("results").innerHTML = `<p>No remotes found for "${model}".</p>`;
+      }
+    } catch (e) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("results").innerHTML = `<p>Error fetching data. Try again later.</p>`;
+      console.error(e);
+    }
+  }
+
+  function suggest() {
+    const input = document.getElementById("tvModel").value.toLowerCase();
+    const suggestions = searchLog.filter(q => q.toLowerCase().startsWith(input));
+    // You can use this function to display suggestions if you want later
+  }
+
+  // Load history on page load
+  window.onload = renderHistory;
+</script>
+
 </body>
 </html>
-
 
